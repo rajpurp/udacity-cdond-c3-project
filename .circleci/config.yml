@@ -154,18 +154,17 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["87:e7:7f:be:57:f6:0b:b5:e8:44:f2:68:2b:79:4a:e9"]
-      - attach_workspace:
-          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible # install the dependencies needed for your playbook
       - run:
           name: Configure server
+          working_directory: ./.circleci/ansible
           command: |
-            cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-  #    - destroy-environment:
-  #        workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations  
    
-      
 #  run-migrations:
 #    docker:
 #      # Docker image here that supports NodeJS

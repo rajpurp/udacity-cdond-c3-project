@@ -147,7 +147,6 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       - revert-migrations
 
-     
   configure-infrastructure:
     docker:
       - image: python:3.7-alpine3.11

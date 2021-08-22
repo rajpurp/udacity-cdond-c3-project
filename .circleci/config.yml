@@ -226,23 +226,32 @@ jobs:
       - revert-migrations   
       - destroy-environment    
                     
-#  deploy-backend:
-#    docker:
-#      # Docker image here that supports Ansible
-#    steps:
-#      # Checkout code from git
-#      # Add ssh keys with fingerprint
-#      # attach workspace
-#      - run:
-#          name: Install dependencies
-#          command: |
-#            # your code here
-#      - run:
-#          name: Deploy backend
-#          command: |
-#            # your code here
-#      # Here's where you will add some code to rollback on failure  
-#
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["87:e7:7f:be:57:f6:0b:b5:e8:44:f2:68:2b:79:4a:e9"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible # install the dependencies needed for your playbook
+      - run:
+          name: Deploy backend A
+          command: |
+            cd /home
+            tar czf backend.tar.gz -P /root/project/backend
+      - run:
+          name: Deploy backend B
+          command: |
+            export ANSIBLE_HOST_KEY_CHECKING=False
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+      - revert-migrations   
+      - destroy-environment  
+
 #  smoke-test:
 #    docker:
 #      # Lightweight Docker image 
@@ -327,8 +336,9 @@ workflows:
       - deploy-frontend:
           requires: [configure-infrastructure]
           # requires: [run-migrations]
- #     - deploy-backend:
- #         requires: [run-migrations]
+      - deploy-backend:
+          requires: [configure-infrastructure]
+          # requires: [run-migrations]
  #     - smoke-test:
  #         requires: [deploy-backend, deploy-frontend]
  #     - cloudfront-update:

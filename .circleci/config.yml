@@ -196,27 +196,34 @@ jobs:
       - revert-migrations   
       - destroy-environment
 
-#  deploy-frontend:
-#    docker:
-#      # Docker image here that supports AWS CLI
-#    steps:
-#      # Checkout code from git
-#      - run:
-#          name: Install dependencies
-#          command: |
-#            # your code here
-#      - run:
-#          name: Get backend url
-#          command: |
-#            # your code here
-#            export API_URL="http://${BACKEND_IP}:3030"
-#            echo "${API_URL}"
-#      - run:
-#          name: Deploy frontend objects
-#          command: |
-#            # your code here
-#      # Here's where you will add some code to rollback on failure      
-#                    
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum -y install tar gzip
+      - run:
+          name: Get backend url and Build frontend
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}" >> "frontend/.env"
+            cat frontend/.env
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+      - run:
+          name: Deploy frontend objects
+          working_directory: ./frontend
+          command: |
+            aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+      - revert-migrations   
+      - destroy-environment    
+                    
 #  deploy-backend:
 #    docker:
 #      # Docker image here that supports Ansible
@@ -313,10 +320,11 @@ workflows:
       - configure-infrastructure:
           requires: [deploy-infrastructure]
           
-      - run-migrations:
+ #     - run-migrations:
+ #         requires: [configure-infrastructure]
+      - deploy-frontend:
           requires: [configure-infrastructure]
- #     - deploy-frontend:
- #         requires: [run-migrations]
+          # requires: [run-migrations]
  #     - deploy-backend:
  #         requires: [run-migrations]
  #     - smoke-test:

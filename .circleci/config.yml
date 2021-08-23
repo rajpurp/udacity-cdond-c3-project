@@ -238,16 +238,24 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible # install the dependencies needed for your playbook
+            yum -y install tar gzip
+            apk add --update ansible
+            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
+            yum -y install nodejs
+
       - run:
           name: Deploy backend A
+          working_directory: ./.circleci/ansible
           command: |
-            cd /home
-            tar czf backend.tar.gz -P /root/project/backend
+            apk add --update ansible curl rsync openssh nodejs npm
+            pip3 install --upgrade pip
+            pip3 install awscli
+
       - run:
           name: Deploy backend B
           command: |
             export ANSIBLE_HOST_KEY_CHECKING=False
+            tar -C backend -czvf artifact.tar.gz .
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       - revert-migrations   
       - destroy-environment  

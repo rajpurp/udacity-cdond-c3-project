@@ -238,19 +238,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yum -y install tar gzip
-            apk add --update ansible
-            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
-            yum -y install nodejs
-
-      - run:
-          name: Deploy backend A
-          working_directory: ./.circleci/ansible
-          command: |
-            apk add --update ansible curl rsync openssh nodejs npm
-            pip3 install --upgrade pip
-            pip3 install awscli
-
+            apk add --update tar gzip ansible nodejs npm
+            pip install awscli
       - run:
           name: Deploy backend B
           command: |

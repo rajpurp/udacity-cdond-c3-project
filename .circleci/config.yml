@@ -334,13 +334,13 @@ workflows:
  #     - run-migrations:
  #         requires: [configure-infrastructure]
       - deploy-frontend:
-          requires: [configure-infrastructure]
+          requires: [configure-infrastructure,deploy-backend]
           filters:
             branches:
               only: [master]
           # requires: [run-migrations]
       - deploy-backend:
-          requires: [configure-infrastructure, deploy-backend]
+          requires: [configure-infrastructure ]
           filters:
             branches:
               only: [master]

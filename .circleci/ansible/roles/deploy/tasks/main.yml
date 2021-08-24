@@ -1,9 +1,11 @@
 - name: Creates directory in ubuntu
+  become_user: true
   file:
     path: /home/ubuntu/backend
     state: directory
 
 - name: Transfer backend files from cloud server
+  become: true
   copy:
     src: /root/project/backend
     dest: /home/ubuntu/
@@ -19,5 +21,3 @@
     npm run build
     pm2 start npm --name backend -- start
     pm2 ls
-    
-

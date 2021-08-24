@@ -145,6 +145,7 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress" --output text >> .circleci/ansible/inventory.txt
+            cat inventory.txt 
       - persist_to_workspace:
           root: ~/
           paths:
@@ -157,7 +158,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["87:e7:7f:be:57:f6:0b:b5:e8:44:f2:68:2b:79:4a:e9"]
+          fingerprints: ["90:e7:17:fc:c1:bd:52:7c:8a:69:6c:54:e4:ac:65:4c"]
       - run:
           name: Install dependencies
           command: |
@@ -183,16 +184,18 @@ jobs:
             npm run migrations >> run_migrations
       - run:
           name: Send migration results to memstash
+#               8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3
           command: |
             if grep -q "has been executed successfully" run_migrations
             then
               echo "DB migration successful, updating memstash!!"
-              curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+#              curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             else
               echo "DB migration got failed."
-              curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+#              curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             fi
-            echo "WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations   
       - destroy-environment
 
@@ -232,7 +235,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["87:e7:7f:be:57:f6:0b:b5:e8:44:f2:68:2b:79:4a:e9"]
+          fingerprints: ["90:e7:17:fc:c1:bd:52:7c:8a:69:6c:54:e4:ac:65:4c"]
       - attach_workspace:
           at: ~/
       - run:
@@ -243,9 +246,19 @@ jobs:
       - run:
           name: Deploy backend B
           command: |
-            tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
+              ls -la
+              echo "My current workspace is : $(pwd)"               
+              cd backend
+              npm i
+              npm run build
+              tar -czvf /etc/backend.tar.gz ./
+              chmod 644 /etc/backend.tar.gz
+              echo "here"
+              cd ..
+              pwd
+              cd .circleci/ansible
+              cat inventory.txt
+              ansible-playbook -i inventory.txt deploy-backend.yml   
       - revert-migrations   
       - destroy-environment  
 

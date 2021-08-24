@@ -161,7 +161,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible # install the dependencies needed for your playbook
+            apk add --update ansible
       - run:
           name: Configure server
           working_directory: ./.circleci/ansible
@@ -243,8 +243,8 @@ jobs:
       - run:
           name: Deploy backend B
           command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            tar -C backend -czvf artifact.tar.gz .
+ #           export ANSIBLE_HOST_KEY_CHECKING=False
+            tar -C backend -cvzf artifact.tar.gz .
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       - revert-migrations   
       - destroy-environment  

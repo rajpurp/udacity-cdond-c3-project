@@ -141,10 +141,27 @@ jobs:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name Prakash-frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=Prakash_frontend
+            
+      - run:
+          name: Add back-end ip to ansible inventory1
+          working_directory: ./.circleci/ansible
+          command: |
+            aws ec2 describe-instances \
+              --region us-east-2 \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --filters "Name=tag:project,Values=diptiudapeopleBackend" \
+              --output text > inventory1.txt
+            cat inventory1.txt 
+
       - run:
           name: Add back-end ip to ansible inventory
+          working_directory: ./.circleci/ansible
           command: |
-            aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress" --output text >> .circleci/ansible/inventory.txt
+            aws ec2 describe-instances \
+              --region us-east-2 \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --filters "Name=tag:project,Values=diptiudapeopleBackend" \
+              --output text >> inventory.txt
             cat inventory.txt 
       - persist_to_workspace:
           root: ~/

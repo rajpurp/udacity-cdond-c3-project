@@ -192,6 +192,16 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install AWS CLI dependencies
+          working_directory: /tmp
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
       - run:
           name: Run migrations
           command: |
@@ -199,7 +209,7 @@ jobs:
             npm install
             npm audit fix --audit-level=critical
             npm audit fix --force
-            npm run migrations >> run_migrations
+            npm run migrations > run_migrations
       - run:
           name: Send migration results to memstash
           command: |

@@ -24,7 +24,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS = $(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            SUCCESS = $(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -198,6 +198,7 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical
+            npm audit fix --force
             npm run migrations >> run_migrations
       - run:
           name: Send migration results to memstash

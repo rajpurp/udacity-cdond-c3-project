@@ -188,7 +188,7 @@ jobs:
             
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: circleci/node:latest
     steps:
       - checkout
       - attach_workspace:
@@ -202,15 +202,27 @@ jobs:
             unzip awscliv2.zip
             sudo ./aws/install
       - run:
-          name: Run migrations
-          working_directory: ./backend
-          command: |                      
+          name: run db migration
+          command: |
+            cd backend
+            echo ENVIROMENT=$ENVIROMENT > ".env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ".env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ".env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> ".env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> ".env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             npm install
-            npm run migrations > run_migrations
+            touch run_migrations.txt
+            npm run migrations >> run_migrations.txt
+            cat run_migrations.txt
       - run:
           name: Send migration results to memstash
           command: |
-            if grep -q "has been executed successfully" run_migrations
+            if grep -q "has been executed successfully" run_migrations.txt
             then
               echo "DB migration successful, updating memstash!!"
               curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
@@ -218,6 +230,11 @@ jobs:
               echo "DB migration got failed."
               curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
             fi
+            SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "${SUCCESS}" 
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
       - revert-migrations   
       - destroy-environment
 

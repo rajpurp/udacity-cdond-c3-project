@@ -292,7 +292,7 @@ jobs:
       - revert-migrations   
       - destroy-environment  
 
-  smoke-test
+  smoke-test:
     docker:
       - image: python:3.9.0-alpine 
     steps:
@@ -310,11 +310,17 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            # your code here
+            curl "$BACKEND_URL/api/status"
       - run:
           name: Frontend smoke test.
           command: |
-            # your code here
+            URL = "https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-us-east-2.amazonaws.com/index.html"
+            if curl -s ${URL} | grep "Welcome"
+            then
+            return 1
+            else
+            return 0
+            fi
       - destroy-environment
       - revert-migrations  
 

@@ -151,7 +151,18 @@ jobs:
               --filters "Name=tag:project,Values=Prakash_backend" \
               --output text > inventory1.txt
             cat inventory1.txt 
+
+      - run:
+          name: Add back-end ip to memstash
+          working_directory: ./.circleci/ansible
+          command: |
+            BACKEND_ID=$(aws ec2 describe-instances \
+              --region us-east-2 \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --filters "Name=tag:project,Values=Prakash_backend" \
+              --output text )
             curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
+
 
       - persist_to_workspace:
           root: ~/
@@ -306,7 +317,8 @@ jobs:
           name: Get backend url
           command: |
             export BACKEND_URL=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/BACKEND_URL)            
-            curl "$BACKEND_URL/api/status"
+            BKURL="$BACKEND_URL/api/status"
+            echo "${BKURL}"
       - run:
           name: Backend smoke test.
           command: |
@@ -314,7 +326,8 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL = "https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-us-east-2.amazonaws.com/index.html"
+            URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-us-east-2.amazonaws.com/index.html"
+            echo "${URL}"
             if curl -s ${URL} | grep "Welcome"
             then
             return 0            

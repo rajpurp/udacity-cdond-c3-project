@@ -12,8 +12,8 @@
     name: pm2
     global: yes
     production: yes
-    state: present.
-
+    state: present
+    
 - name: Creates directory in ubuntu
   become_user: true
   file:

@@ -1,3 +1,19 @@
+---
+- name: "install dependencies."
+  become: true
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
+
+- name: "install pm2"
+  become: true
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present.
+
 - name: Creates directory in ubuntu
   become_user: true
   file:
@@ -8,8 +24,14 @@
   become: true
   copy:
     src: /etc/backend.tar.gz
-    dest: /home/ubuntu/backend
+    dest: /home/ubuntu/backend/backend.tar.gz
     owner: ubuntu
+    
+- name: Uncompress Backend
+  shell: |
+    cd /home/ubuntu/backend
+    tar xvzf backend.tar.gz -C .
+    ls -la
 
 - name: "Insatll npm, dependencies, build package and start node"
   become: true
@@ -30,3 +52,4 @@
     echo="############################# 7 ##########################"
     pm2 ls
     echo="############################# 8 ##########################"
+

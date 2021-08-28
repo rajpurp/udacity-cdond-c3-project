@@ -1,75 +1,43 @@
 ---
-- name: "install dependencies."
+- name: Install nodejs npm.
   become: true
   apt:
     name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
 
-- name: "install pm2"
+- name: Install pm2
   become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
-    
-- name: Creates directory in ubuntu
-  become_user: true
+
+- name: Creates backend directory
   file:
     path: /home/ubuntu/backend
     state: directory
 
-- name: Transfer backend files from cloud server
-  become: true
+- name: Copy tar file
   copy:
-    src: /etc/backend.tar.gz
+    src: /root/project/backend.tar.gz
     dest: /home/ubuntu/backend/backend.tar.gz
-    owner: ubuntu
-    
-- name: Uncompress Backend
-  become: true
+
+- name: unzip tar
   shell: |
     cd /home/ubuntu/backend
     tar xvzf backend.tar.gz -C .
     ls -la
-
-- name: Insatll npm
-  become: true
-  shell: |
-    npm install -g npm@latest
     
-- name: ls 
+- name: install and run build
   become: true
   shell: |
-    ls -la
-    
-- name: Insatll npm
-  become: true
-  shell: |
+    cd /home/ubuntu/backend
     npm install
-
-- name: npm audit fix
-  become: true
-  shell: |
-    npm audit fix --audit-level=critical --force
-
-- name: npm run build
-  become: true
-  shell: |
     npm run build
     
-- name: npm run migrations
-  become: true
+- name: Start backend
   shell: |
-    npm run migrations
-    
-- name: pm2 start npm
-  become: true
-  shell: |
+    cd /home/ubuntu/backend
     pm2 start npm --name backend -- start
-    
-- name: pm2 ls
-  become: true
-  shell: |
-    pm2 ls

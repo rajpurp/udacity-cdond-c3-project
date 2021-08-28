@@ -150,8 +150,8 @@ jobs:
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --filters "Name=tag:project,Values=Prakash_backend" \
-              --output text > inventory.txt
-            cat inventory.txt 
+              --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
 
       - run:
           name: Add back-end ip to memstash
@@ -189,8 +189,8 @@ jobs:
           command: |
             pwd &&
             ls -la
-            cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml
+            cat .circleci/ansible/inventory.txt
+            ansible-playbook -i .circleci/ansible/inventory.txt configure-server.yml
       - revert-migrations  
             
   run-migrations:
@@ -212,6 +212,8 @@ jobs:
           name: run db migration
           command: |
             cd backend
+            pwd &&
+            ls -la
             echo ENVIROMENT=$ENVIROMENT > ".env"
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ".env"
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ".env"
@@ -234,6 +236,9 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
+            cd backend
+            pwd &&
+            ls -la
             if grep -q "has been executed successfully" run_migrations.txt
             then
               echo "DB migration successful, updating memstash!!"
@@ -311,8 +316,8 @@ jobs:
               cd ..
               pwd
               cd .circleci/ansible
-              cat inventory.txt
-              ansible-playbook -i inventory.txt deploy-backend.yml   
+              cat .circleci/ansible/inventory.txt
+              ansible-playbook -i .circleci/ansible/inventory.txt deploy-backend.yml   
       - revert-migrations   
       - destroy-environment  
 
@@ -336,7 +341,9 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            curl "$BACKEND_URL/api/status"
+            BACKENDIP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            curl "http://${BACKENDIP}:3030/api/status"
+
       - run:
           name: Frontend smoke test.
           command: |

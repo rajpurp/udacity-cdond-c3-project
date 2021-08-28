@@ -50,24 +50,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-
-  build-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: build-backend
-          command: |
-            cd backend
-            npm install
-            npm run build
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-
+          
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -79,20 +62,6 @@ jobs:
           name: test-frontend
           command: |
             cd frontend
-            npm install
-            npm run test
-                
-  test-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: test-backend
-          command: |
-            cd backend
             npm install
             npm run test
             
@@ -110,6 +79,36 @@ jobs:
             npm install
             npm audit fix --audit-level=critical
 
+  build-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: build-backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
+          
+  test-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: test-backend
+          command: |
+            cd backend
+            npm install
+            npm run test
 
   scan-backend:
     docker:
@@ -124,6 +123,8 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical
+
+#############################################
 
   deploy-infrastructure:
     docker:
@@ -149,20 +150,21 @@ jobs:
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --filters "Name=tag:project,Values=Prakash_backend" \
-              --output text > inventory1.txt
-            cat inventory1.txt 
+              --output text > inventory.txt
+            cat inventory.txt 
 
       - run:
           name: Add back-end ip to memstash
           working_directory: ./.circleci/ansible
           command: |
-            BACKEND_ID=$(aws ec2 describe-instances \
+            export BACKEND=$(aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --filters "Name=tag:project,Values=Prakash_backend" \
               --output text )
-            curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
-
+            echo="${BACKEND}"
+            echo="http://$BACKEND:3030"
+            curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "http://$BACKEND:3030" https://api.memstash.io/values/BACKENDURL
 
       - persist_to_workspace:
           root: ~/
@@ -185,6 +187,9 @@ jobs:
           name: Configure server
           working_directory: ./.circleci/ansible
           command: |
+            pwd &&
+            ls -la
+            cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
       - revert-migrations  
             
@@ -217,10 +222,15 @@ jobs:
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+            echo "####################### 1 echo ######################################
             npm install
+            echo "####################### 2 echo ######################################
             touch run_migrations.txt
+            echo "####################### 3 echo ######################################
             npm run migrations >> run_migrations.txt
+            echo "####################### 4 echo ######################################
             cat run_migrations.txt
+            echo "####################### end echo ####################################
       - run:
           name: Send migration results to memstash
           command: |
@@ -232,8 +242,11 @@ jobs:
               echo "DB migration got failed."
               curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
+            echo "####################### 1 echo ######################################
             SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            echo "####################### 2 echo ######################################
             echo "${SUCCESS}" 
+            echo "####################### 3 echo ######################################
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -316,9 +329,10 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_URL=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/BACKEND_URL)            
-            BKURL="$BACKEND_URL/api/status"
+            export BACKEND_URL=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/BACKENDURL)            
+            export BKURL="$BACKEND_URL/api/status"
             echo "${BKURL}"
+
       - run:
           name: Backend smoke test.
           command: |

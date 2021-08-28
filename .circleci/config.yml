@@ -339,16 +339,14 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_URL=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/BACKENDURL)            
-            export BKURL="$BACKEND_URL/api/status"
+            export BKURL=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/BACKENDURL)            
             echo "${BKURL}"
 
       - run:
           name: Backend smoke test.
           command: |
-            BACKENDIP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            curl "http://${BACKENDIP}:3030/api/status"
-
+            curl "$BKURL/api/status"
+            
       - run:
           name: Frontend smoke test.
           command: |

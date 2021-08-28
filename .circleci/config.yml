@@ -345,7 +345,8 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            curl "$BKURL/api/status"
+            curl "${BKURL}/api/status"
+            echo "${BKURL}/api/status"
             
       - run:
           name: Frontend smoke test.

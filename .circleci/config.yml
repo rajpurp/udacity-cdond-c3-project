@@ -401,16 +401,16 @@ jobs:
 #     - destroy-environment
 #     - revert-migrations  
 
-
-
   cloudfront-update:
     docker:
       - image: amazon/aws-cli
     steps:
-      # Checkout code from git
+      - checkout
       - run:
-          name: Install dependencies
-          working_directory: ./.circleci/files
+          name: Install tar utility
+          command: yum install -y tar gzip
+      - run:
+          name: installing other software
           command: |
             curl -sL https://rpm.nodesource.com/setup_12.x | bash -
             yum -y install nodejs npm tar gzip jq git
@@ -418,15 +418,9 @@ jobs:
             yum install -y tar gzip curl
             yum install -y nodejs
       - run:
-          name: Update cloudfront distribution
-          working_directory: ./.circleci/files
+          name: Ensure back-end infrastructure exists
           command: |
-            echo "Update CloudFront distribution"
-            aws cloudformation deploy \
-              --template-file cloudfront.yml \
-              --stack-name udapeople-cloudfront-prod \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udapeople-cloudfront
+            aws cloudformation deploy --template-file .circleci/files/cloudfront.yml --stack-name udapeople-cloudfront-prod --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=udapeople-cloudfront 
       - revert-migrations   
       - destroy-environment     
     

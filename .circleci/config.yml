@@ -14,8 +14,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name Prakash-backend-${CIRCLE_WORKFLOW_ID:0:7}
-            aws cloudformation delete-stack --stack-name Prakash-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name prod-backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name prod-frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -135,13 +135,20 @@ jobs:
           name: Install tar utility
           command: yum install -y tar gzip
       - run:
+          name: installing other software
+          command: |
+            yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            yum install jq -y
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
-            aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name Prakash-backend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=Prakash_backend 
+            aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name prod-backend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=prod-backend 
+
       - run:
           name: Ensure front-end infrastructure exist
           command: |
-            aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name Prakash-frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=Prakash_frontend
+            aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name prod-frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=udapeople
+
       - run:
           name: Add back-end ip to ansible inventory
           working_directory: ./.circleci/ansible
@@ -152,11 +159,11 @@ jobs:
             aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --filters "Name=tag:project,Values=Prakash_backend" \
+              --filters "Name=tag:project,Values=prod-backend" \
               --output text >> inventory.txt
             echo "####################### 2 echo ######################################"
             cat inventory.txt
-
+            
       - run:
           name: Add back-end ip to memstash
           working_directory: ./.circleci/ansible
@@ -164,7 +171,7 @@ jobs:
             export BACKEND=$(aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --filters "Name=tag:project,Values=Prakash_backend" \
+              --filters "Name=tag:project,Values=prod-backend" \
               --output text )
             echo="${BACKEND}"
             echo="http://$BACKEND:3030"

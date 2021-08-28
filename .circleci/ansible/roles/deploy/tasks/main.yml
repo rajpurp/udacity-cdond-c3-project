@@ -33,7 +33,7 @@
     tar xvzf backend.tar.gz -C .
     ls -la
 
-- name: "Insatll npm, dependencies, build package and start node"
+- name: "Insatll npm, dependencies, build package"
   become: true
   shell: |
     cd /home/ubuntu/backend
@@ -42,14 +42,18 @@
     echo="############################# 2 ##########################"
     ls -la
     echo="############################# 3 ##########################"
-    npm install
     echo="############################# 4 ##########################"
     npm audit fix --audit-level=critical --force
     echo="############################# 5 ##########################"
     npm run build
+    
+- name: "run migrations again and start build"
+  become: true
+  shell: |
+    cd /home/ubuntu/backend
+    npm run migrations
     echo="############################# 6 ##########################"
     pm2 start npm --name backend -- start
     echo="############################# 7 ##########################"
     pm2 ls
     echo="############################# 8 ##########################"
-

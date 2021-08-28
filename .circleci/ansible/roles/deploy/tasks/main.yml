@@ -7,17 +7,26 @@
 - name: Transfer backend files from cloud server
   become: true
   copy:
-    src: /root/project/backend
-    dest: /home/ubuntu/
+    src: /etc/backend.tar.gz
+    dest: /home/ubuntu/backend
+    owner: ubuntu
 
 - name: "Insatll npm, dependencies, build package and start node"
   become: true
   shell: |
     cd /home/ubuntu/backend
+    echo="############################# 1 ##########################"
     npm install -g npm@latest
+    echo="############################# 2 ##########################"
     ls -la
+    echo="############################# 3 ##########################"
     npm install
+    echo="############################# 4 ##########################"
     npm audit fix --audit-level=critical --force
+    echo="############################# 5 ##########################"
     npm run build
+    echo="############################# 6 ##########################"
     pm2 start npm --name backend -- start
+    echo="############################# 7 ##########################"
     pm2 ls
+    echo="############################# 8 ##########################"

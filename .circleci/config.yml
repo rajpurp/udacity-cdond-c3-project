@@ -307,7 +307,7 @@ jobs:
             apk add --update tar gzip ansible nodejs npm
             pip install awscli
       - run:
-          name: Deploy backend B
+          name: Deploy backend
           command: |
               ls -la
               echo "My current workspace is : $(pwd)"               
@@ -321,9 +321,10 @@ jobs:
               pwd
               cd .circleci/ansible
               cat inventory.txt
+              echo "#################### 0 echo ########################"
               ansible-playbook -i inventory.txt deploy-backend.yml   
-      - revert-migrations   
-      - destroy-environment  
+#      - revert-migrations   
+#      - destroy-environment  
 
   smoke-test:
     docker:

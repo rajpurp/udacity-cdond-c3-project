@@ -28,32 +28,48 @@
     owner: ubuntu
     
 - name: Uncompress Backend
+  become: true
   shell: |
     cd /home/ubuntu/backend
     tar xvzf backend.tar.gz -C .
     ls -la
 
-- name: "Insatll npm, dependencies, build package"
+- name: Insatll npm
   become: true
   shell: |
-    cd /home/ubuntu/backend
-    echo="############################# 1 ##########################"
     npm install -g npm@latest
-    echo="############################# 2 ##########################"
+    
+- name: ls 
+  become: true
+  shell: |
     ls -la
-    echo="############################# 3 ##########################"
-    echo="############################# 4 ##########################"
+    
+- name: Insatll npm
+  become: true
+  shell: |
+    npm install
+
+- name: npm audit fix
+  become: true
+  shell: |
     npm audit fix --audit-level=critical --force
-    echo="############################# 5 ##########################"
+
+- name: npm run build
+  become: true
+  shell: |
     npm run build
     
-- name: "run migrations again and start build"
+- name: npm run migrations
   become: true
   shell: |
-    cd /home/ubuntu/backend
     npm run migrations
-    echo="############################# 6 ##########################"
+    
+- name: pm2 start npm
+  become: true
+  shell: |
     pm2 start npm --name backend -- start
-    echo="############################# 7 ##########################"
+    
+- name: pm2 ls
+  become: true
+  shell: |
     pm2 ls
-    echo="############################# 8 ##########################"

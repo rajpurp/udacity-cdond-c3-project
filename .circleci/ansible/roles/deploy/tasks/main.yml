@@ -21,13 +21,13 @@
 
 - name: Copy tar file
   copy:
-    src: /root/project/backend.tar.gz
-    dest: /home/ubuntu/backend/backend.tar.gz
+    src: /root/project/backendtar.tar.gz
+    dest: /home/ubuntu/backend/backendtar.tar.gz
 
 - name: unzip tar
   shell: |
     cd /home/ubuntu/backend
-    tar xvzf backend.tar.gz -C .
+    tar xvzf backendtar.tar.gz -C .
     ls -la
     
 - name: install and run build

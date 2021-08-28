@@ -320,8 +320,6 @@ jobs:
             [[ ! -d backend ]] && mkdir backend
             ls -la
             echo "My current workspace is : $(pwd)"               
-            npm i
-            npm run build
             myenv="backend/.env"
             echo ENVIROMENT=production > $myenv
             echo NODE_ENV=production >> $myenv
@@ -334,7 +332,7 @@ jobs:
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> $myenv
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> $myenv
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> $myenv
-            tar -C backend -czvf backend.tar.gz .
+            tar -C backend -czvf backendtar.tar.gz .
             ls -la
               
       - run:

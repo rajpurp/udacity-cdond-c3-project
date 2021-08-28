@@ -222,15 +222,15 @@ jobs:
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-            echo "####################### 1 echo ######################################
+            echo "####################### 1 echo ######################################"
             npm install
-            echo "####################### 2 echo ######################################
+            echo "####################### 2 echo ######################################"
             touch run_migrations.txt
-            echo "####################### 3 echo ######################################
+            echo "####################### 3 echo ######################################"
             npm run migrations >> run_migrations.txt
-            echo "####################### 4 echo ######################################
+            echo "####################### 4 echo ######################################"
             cat run_migrations.txt
-            echo "####################### end echo ####################################
+            echo "####################### end echo ####################################"
       - run:
           name: Send migration results to memstash
           command: |
@@ -242,11 +242,11 @@ jobs:
               echo "DB migration got failed."
               curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
-            echo "####################### 1 echo ######################################
+            echo "####################### 1 echo ######################################"
             SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
-            echo "####################### 2 echo ######################################
+            echo "####################### 2 echo ######################################"
             echo "${SUCCESS}" 
-            echo "####################### 3 echo ######################################
+            echo "####################### 3 echo ######################################"
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build

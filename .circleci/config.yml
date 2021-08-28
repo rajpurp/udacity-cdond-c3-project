@@ -410,6 +410,7 @@ jobs:
       # Checkout code from git
       - run:
           name: Install dependencies
+          working_directory: ./.circleci/files
           command: |
             curl -sL https://rpm.nodesource.com/setup_12.x | bash -
             yum -y install nodejs npm tar gzip jq git
@@ -422,7 +423,7 @@ jobs:
           command: |
             echo "Update CloudFront distribution"
             aws cloudformation deploy \
-              --template-file .circleci/files/cloudfront.yml \
+              --template-file cloudfront.yml \
               --stack-name udapeople-cloudfront-prod \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople-cloudfront

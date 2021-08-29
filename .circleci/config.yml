@@ -425,8 +425,8 @@ jobs:
           command: |
             aws cloudformation update-stack \
             --template-file .circleci/files/cloudfront.yml \
-            --tags project=udapeople \
-            --stack-name udapeople-cloudfront \
+            --tags project=udapeople-cloudfront  \
+            --stack-name udapeople-cloudfront-prod \
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-environment  
       - revert-migrations  

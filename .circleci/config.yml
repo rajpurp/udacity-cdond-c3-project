@@ -416,7 +416,7 @@ jobs:
               --region us-east-2 \
               list-exports --query "Exports[?Name=='WorkflowID'].Value" \
               --no-paginate --output text)
-            curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$WorkflowID" https://api.memstash.io/values/OldWorkflowID_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$WorkflowID" https://api.memstash.io/values/WorkflowID$}
 
       - run:
           name: installing other software

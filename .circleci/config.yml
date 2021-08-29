@@ -31,7 +31,6 @@ commands:
               npm install
               npm run migrations:revert
             fi
-          
 jobs:
           
   build-frontend:
@@ -273,7 +272,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-      - revert-migrations   
+      - revert-migrations  
       - destroy-environment
 
   deploy-frontend:
@@ -303,8 +302,8 @@ jobs:
           working_directory: ./frontend
           command: |
             aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-      - revert-migrations   
-      - destroy-environment    
+      - revert-migrations  
+      - destroy-environment     
                     
   deploy-backend:
     docker:
@@ -351,9 +350,8 @@ jobs:
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml 
-
-#      - revert-migrations   
-#      - destroy-environment  
+      - revert-migrations  
+      - destroy-environment 
 
   smoke-test:
     docker:
@@ -397,8 +395,8 @@ jobs:
             else
             return 1
             fi
-#     - destroy-environment
-#     - revert-migrations  
+      - revert-migrations  
+      - destroy-environment 
 
   cloudfront-update:
     docker:
@@ -430,8 +428,8 @@ jobs:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy --template-file .circleci/files/cloudfront.yml --stack-name udapeople-cloudfront-prod --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=udapeople-cloudfront 
-      - revert-migrations   
-      - destroy-environment    
+      - revert-migrations  
+      - destroy-environment  
 
 
   cleanup:

@@ -398,7 +398,7 @@ jobs:
       - revert-migrations  
       - destroy-environment 
 
-  cloudfront-update:
+  cloudfront-update-cleanup:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -414,48 +414,41 @@ jobs:
           name: get old workflow if from memstash for cleanup phase
           working_directory: ./.circleci/files
           command: |
-            WorkflowID=$(aws cloudformation \
-              --region us-east-2 \
-              list-exports --query "Exports[?Name=='WorkflowID'].Value" \
-              --no-paginate --output text)
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "${CIRCLE_WORKFLOW_ID}" https://api.memstash.io/values/workflow_${CIRCLE_WORKFLOW_ID}
-
-      - run:
-          name: Update cloudfront distribution
-          command: |
-            aws cloudformation update-stack \
-            --template-file .circleci/files/cloudfront.yml \
-            --tags project=udapeople-cloudfront  \
-            --stack-name udapeople-cloudfront-prod \
-            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
-      - destroy-environment  
-      - revert-migrations  
-
-    
-
-  cleanup:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Get old stack workflow id
-          command: |
-            export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/workflow_${CIRCLE_WORKFLOW_ID})
+            export OldWorkflowID=$(aws cloudformation \
+                  list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                  --no-paginate --output text)
+                  
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-      - run:
-          name: Remove old stacks and files
-          command: |
-            echo Old Workflow Id: "${OldWorkflowID}"
-            echo Current Workflow Id: "${CIRCLE_WORKFLOW_ID:0:7}"
-            if [[ ! -z "${OLD_WORKFLOW_ID}" ]] && [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+                  --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+                  
+            echo $OldWorkflowID
+            echo $STACKS
+                  
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "${OldWorkflowID}" https://api.memstash.io/values/workflow_${CIRCLE_WORKFLOW_ID}
+                  
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               echo Remove old stack
               aws s3 rb s3://udapeople-${OldWorkflowID} --force
               aws cloudformation delete-stack --stack-name "prod-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "prod-frontend-${OldWorkflowID}"
+              echo "stack deleted succesfully"
+            else
+              echo "This is new stack and nothing to delete."
             fi
+      - destroy-environment  
+      - revert-migrations  
+   
+
+# cleanup:
+#   docker:
+#     - image: amazon/aws-cli
+#   steps:
+#     - checkout
+#     - run:
+#         name: Remove old stacks and files
+#         command: |
+#
 
 workflows:
   default:
@@ -497,7 +490,16 @@ workflows:
               only: [master]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
+          filters:
+            branches:
+              only: [master]
+      - cloudfront-update-cleanup:
           requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update]
+          filters:
+            branches:
+              only: [master]
+ #    - cleanup:
+ #        requires: [ cloudfront-update ] 
+ #        filters:
+ #          branches:
+ #            only: [master]

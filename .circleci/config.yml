@@ -212,7 +212,6 @@ jobs:
       - run:
           name: Configure server
           working_directory: ./.circleci/ansible
-          working_directory: ./.circleci/ansible
           command: |
             pwd &&
             ls -la

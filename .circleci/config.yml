@@ -412,7 +412,6 @@ jobs:
             
       - run:
           name: get old workflow and store in memstash for cleanup phase
-       - checkout
           working_directory: ./.circleci/files
           command: |
             export OldWorkflowID1=$(aws cloudformation \

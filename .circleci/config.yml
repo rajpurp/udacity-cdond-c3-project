@@ -391,7 +391,7 @@ jobs:
             echo "${URL}"
             if curl -s ${URL} | grep "Welcome"
             then
-            return 1            
+            return 0            
             else
             return 1
             fi
@@ -421,8 +421,8 @@ jobs:
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                   --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
                   
-            echo $OldWorkflowID
-            echo $STACKS
+            echo "OldWorkflowID : $OldWorkflowID"
+            echo "New STACK :$STACKS"
                   
             curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "${OldWorkflowID}" https://api.memstash.io/values/workflow_${CIRCLE_WORKFLOW_ID}
                   

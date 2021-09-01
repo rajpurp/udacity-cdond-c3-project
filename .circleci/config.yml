@@ -93,7 +93,7 @@ jobs:
             npm install
             npm i
             npm run build
-            npm audit fix
+            npm audit fix --force
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -126,6 +126,7 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical
+            npm audit fix --force
             
 #############################################
 
@@ -145,12 +146,12 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists
           command: |
-            aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name prod-backend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=prod-backend 
+            aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name prod-backend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=prod-backend-${CIRCLE_WORKFLOW_ID:0:7} 
 
       - run:
           name: Ensure front-end infrastructure exist
           command: |
-            aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name prod-frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=udapeople
+            aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name prod-frontend-${CIRCLE_WORKFLOW_ID:0:7} --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} --tags project=prod-frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
       - run:
           name: Add back-end ip to ansible inventory

@@ -411,11 +411,14 @@ jobs:
             yum -y install tar gzip
             
       - run:
-        name: Update cloud front distribution
+        name: get OldWorkflowID
         command: |
             export OldWorkflowID=$(aws cloudformation \
                     list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                     --no-paginate --output text)
+      - run:
+        name: Update STACKS
+        command: |
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                     --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo "OldWorkflowID is : $OldWorkflowID"
@@ -424,11 +427,19 @@ jobs:
             echo "STACKS 2 : ${STACKS[2]}"
             echo "STACKS 3 : ${STACKS[3]}"
             echo "STACKS 4 : ${STACKS[4]}"
+            
+      - run:
+        name: cloudfront deploy
+        command: |
             aws cloudformation deploy \
               --template-file cloudfront.yml \
               --stack-name udapeople-prod \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople	
+              
+      - run:
+        name: Cleanup
+        command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then   
                echo "$CurrentWorkflowID!=$OldWorkflowID => Hence delete old workflowid"

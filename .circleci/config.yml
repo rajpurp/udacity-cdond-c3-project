@@ -398,7 +398,7 @@ jobs:
       - revert-migrations  
       - destroy-environment 
 
-  cloudfront-update-and-cleanup:
+  cloudfront-update:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -411,44 +411,52 @@ jobs:
             yum -y install tar gzip
             
       - run:
-          name: get old workflow if from memstash for cleanup phase
+          name: get old workflow and store in memstash for cleanup phase
+       - checkout
           working_directory: ./.circleci/files
           command: |
-            export OldWorkflowID=$(aws cloudformation \
-                  list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-                  --no-paginate --output text)
-                  
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-                  --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-                  
-            echo "OldWorkflowID : $OldWorkflowID"
-            echo "New STACK :$STACKS"
-                  
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "${OldWorkflowID}" https://api.memstash.io/values/workflow_${CIRCLE_WORKFLOW_ID}
-                  
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-            then
-              echo Remove old stack
-              aws s3 rb s3://udapeople-${OldWorkflowID} --force
-              aws cloudformation delete-stack --stack-name "prod-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "prod-frontend-${OldWorkflowID}"
-              echo "stack deleted succesfully"
-            else
-              echo "This is new stack and nothing to delete."
-            fi
-#      - destroy-environment  
-#      - revert-migrations  
-   
-
-# cleanup:
-#   docker:
-#     - image: amazon/aws-cli
-#   steps:
-#     - checkout
-#     - run:
-#         name: Remove old stacks and files
-#         command: |
-#
+            export OldWorkflowID1=$(aws cloudformation \
+                          list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                          --no-paginate --output text | tr -d '\n')
+            curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$OldWorkflowID1" https://api.memstash.io/values/WorkflowID
+            
+       - run:
+          name: Update cloudfront distribution
+          working_directory: ./.circleci/files
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudfront.yml \
+              --stack-name udapeople-cloudfront-production \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
+      - revert-migrations  
+      - destroy-environment 
+      
+  cleanup:
+     docker:
+       - image: circleci/node:13.8.0
+     steps:
+       - checkout
+       - run:
+          name: Find old stack workflow id
+          command: |
+             OldWorkflowID=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/WorkflowID)
+             CurrentWorkflowID=${CIRCLE_WORKFLOW_ID:0:7}
+             echo "OldWorkflowID : $OldWorkflowID"
+             echo "CurrentWorkflowID : $CurrentWorkflowID"
+       - run:
+          name: Remove old stack workflow id
+          command: |
+             if [[ "$CurrentWorkflowID" != "$OldWorkflowID" ]]
+             then
+               echo "$CurrentWorkflowID!=$OldWorkflowID => Hence delete old workflowid"
+               aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
+               aws cloudformation delete-stack --stack-name "prod-frontend-${OldWorkflowID}"
+               aws cloudformation delete-stack --stack-name "prod-backend-${OldWorkflowID}"
+             else
+               echo "$CurrentWorkflowID==$OldWorkflowID => Hence nothing need to be done here."
+             fi
+            
 
 workflows:
   default:
@@ -493,13 +501,13 @@ workflows:
           filters:
             branches:
               only: [master]
-      - cloudfront-update-and-cleanup:
+      - cloudfront-update:
           requires: [smoke-test]
           filters:
             branches:
               only: [master]
- #    - cleanup:
- #        requires: [ cloudfront-update ] 
- #        filters:
- #          branches:
- #            only: [master]
+      - cleanup:
+          requires: [ cloudfront-update ] 
+          filters:
+            branches:
+              only: [master]

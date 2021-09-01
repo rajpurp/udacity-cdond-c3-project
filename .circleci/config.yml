@@ -353,7 +353,8 @@ jobs:
             pwd
             cd .circleci/ansible
             cat inventory.txt
-            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+            ANSIBLE_HOST_KEY_CHECKING=False 
+            ansible-playbook -i inventory.txt deploy-backend.yml
             
       - revert-migrations  
       - destroy-environment 

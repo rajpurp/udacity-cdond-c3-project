@@ -167,7 +167,8 @@ jobs:
               --output text >> inventory.txt
             echo "####################### 2 echo ######################################"
             cat inventory.txt
-
+            
+           
       - run:
           name: Add back-end ip to memstash
           working_directory: ./.circleci/ansible
@@ -177,8 +178,9 @@ jobs:
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --filters "Name=tag:project,Values=prod-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text )
-            echo="${BACKEND}"
-            echo="http://$BACKEND:3030"
+            echo "####################### 1 echo ######################################"
+            echo "${BACKEND}"
+            echo "http://$BACKEND:3030"
             curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$BACKEND" https://api.memstash.io/values/BACKENDURL
 
       - persist_to_workspace:
@@ -195,12 +197,21 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["90:e7:17:fc:c1:bd:52:7c:8a:69:6c:54:e4:ac:65:4c"]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
+            apk add --update tar gzip ansible nodejs npm
+            apk add --no-cache python3 py3-pip && pip3 install --upgrade pip && pip3 install awscli && rm -rf /var/cache/apk/*
+            /usr/local/bin/python -m pip install --upgrade pip
+            apk add --update openssh-client
+            apk add --update curl
+            apk add --update jq
+            
       - run:
           name: Configure server
+          working_directory: ./.circleci/ansible
           working_directory: ./.circleci/ansible
           command: |
             pwd &&
@@ -242,6 +253,7 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             echo "####################### 1 echo ######################################"
             npm install
+            npm audit fix --force
             echo "####################### 2 echo ######################################"
             touch run_migrations.txt
             echo "####################### 3 echo ######################################"
@@ -249,6 +261,7 @@ jobs:
             echo "####################### 4 echo ######################################"
             cat run_migrations.txt
             echo "####################### end echo ####################################"
+
       - run:
           name: Send migration results to memstash
           command: |

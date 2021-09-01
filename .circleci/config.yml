@@ -416,18 +416,6 @@ jobs:
             export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
             echo "OldWorkflowID is : $OldWorkflowID"
             curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "${OldWorkflowID}" https://api.memstash.io/values/OldWorkflowID
-      - run:
-          name: Update STACKS
-          command: |
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-                    --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-            echo "OldWorkflowID is : $OldWorkflowID"
-            echo "STACKS 0 : ${STACKS[@]}"
-            echo "STACKS 0 : ${STACKS[0]}"
-            echo "STACKS 1 : ${STACKS[1]}"
-            echo "STACKS 2 : ${STACKS[2]}"
-            echo "STACKS 3 : ${STACKS[3]}"
-            echo "STACKS 4 : ${STACKS[4]}"
             
       - run:
           name: cloudfront deploy
@@ -443,7 +431,16 @@ jobs:
           command: |
             export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/OldWorkflowID)
             echo "OldWorkflowID is : $OldWorkflowID"
-            echo "STACKS 0 : ${STACKS[@]}"
+
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+
+            echo "STACKS @ : ${STACKS[@]}"
+            echo "STACKS 0 : ${STACKS[0]}"
+            echo "STACKS 1 : ${STACKS[1]}"
+            echo "STACKS 2 : ${STACKS[2]}"
+            echo "STACKS 3 : ${STACKS[3]}"
+            echo "STACKS 4 : ${STACKS[4]}"
+            
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then   
                echo "${STACKS[@]} =~ ${OldWorkflowID} => Hence delete old workflowid"

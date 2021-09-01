@@ -418,20 +418,17 @@ jobs:
                     --no-paginate --output text)
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                     --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-            
             echo "OldWorkflowID is : $OldWorkflowID"
-            echo "STACKS 0 : ${STACKS[0]"
-            echo "STACKS 1 : ${STACKS[1]"
-            echo "STACKS 2 : ${STACKS[2]"
-            echo "STACKS 3 : ${STACKS[3]"
-            
-            
+            echo "STACKS 0 : ${STACKS[0]}"
+            echo "STACKS 1 : ${STACKS[1]}"
+            echo "STACKS 2 : ${STACKS[2]}"
+            echo "STACKS 3 : ${STACKS[3]}"
+            echo "STACKS 4 : ${STACKS[4]}"
             aws cloudformation deploy \
               --template-file cloudfront.yml \
               --stack-name udapeople-prod \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople	
-              
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then   
                echo "$CurrentWorkflowID!=$OldWorkflowID => Hence delete old workflowid"
@@ -441,7 +438,7 @@ jobs:
              else
                echo "$CurrentWorkflowID==$OldWorkflowID => Hence nothing need to be done here."
              fi
-        
+             
 workflows:
   default:
     jobs:

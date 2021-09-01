@@ -379,9 +379,9 @@ jobs:
           command: |
             if curl -s "http://$BKURL:3030/api/status" | grep "ok"
             then
-              echo 0
+              echo "Backend alive, Proceeding"
             else
-              exit 1
+              exit 0
             fi
             
       - run:

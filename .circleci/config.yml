@@ -241,6 +241,8 @@ jobs:
           name: envts
           working_directory: ./backend
           command: |
+            ls -latr
+            cat .env
 #            touch .env
 #            echo ENVIROMENT=production > .env
 #            echo NODE_ENV=production >> ".env"
@@ -254,8 +256,6 @@ jobs:
 #            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
 #            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
 #            echo "####################### 1 echo ######################################"
-            ls -latr
-            cat .env
             
       - run:
           name: run db migration

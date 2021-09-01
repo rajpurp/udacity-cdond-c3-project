@@ -493,7 +493,7 @@ workflows:
           filters:
             branches:
               only: [master]
-      - cloudfront-update-cleanup:
+      - cloudfront-update-and-cleanup:
           requires: [smoke-test]
           filters:
             branches:

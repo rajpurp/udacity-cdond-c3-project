@@ -413,9 +413,7 @@ jobs:
       - run:
           name: get OldWorkflowID
           command: |
-            export OldWorkflowID=$(aws cloudformation \
-                    list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-                    --no-paginate --output text)
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
       - run:
           name: Update STACKS
           command: |
@@ -433,7 +431,7 @@ jobs:
           name: cloudfront deploy
           command: |
             aws cloudformation deploy \
-              --template-file cloudfront.yml \
+              --template-file .circleci/files/cloudfront.yml \
               --stack-name udapeople-prod \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople	

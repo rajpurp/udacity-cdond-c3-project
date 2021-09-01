@@ -404,24 +404,25 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install tar utility
+          name: Install dependencies
           command: |
             curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
             yum -y install nodejs
             yum -y install tar gzip
             
       - run:
-        name: get OldWorkflowID
-        command: |
+          name: get OldWorkflowID
+          command: |
             export OldWorkflowID=$(aws cloudformation \
                     list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                     --no-paginate --output text)
       - run:
-        name: Update STACKS
-        command: |
+          name: Update STACKS
+          command: |
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                     --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo "OldWorkflowID is : $OldWorkflowID"
+            echo "STACKS 0 : ${STACKS[@]}"
             echo "STACKS 0 : ${STACKS[0]}"
             echo "STACKS 1 : ${STACKS[1]}"
             echo "STACKS 2 : ${STACKS[2]}"
@@ -429,8 +430,8 @@ jobs:
             echo "STACKS 4 : ${STACKS[4]}"
             
       - run:
-        name: cloudfront deploy
-        command: |
+          name: cloudfront deploy
+          command: |
             aws cloudformation deploy \
               --template-file cloudfront.yml \
               --stack-name udapeople-prod \
@@ -438,16 +439,16 @@ jobs:
               --tags project=udapeople	
               
       - run:
-        name: Cleanup
-        command: |
+          name: Cleanup
+          command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then   
-               echo "$CurrentWorkflowID!=$OldWorkflowID => Hence delete old workflowid"
+               echo "${STACKS[@]} =~ ${OldWorkflowID} => Hence delete old workflowid"
                aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
                aws cloudformation delete-stack --stack-name "prod-frontend-${OldWorkflowID}"
                aws cloudformation delete-stack --stack-name "prod-backend-${OldWorkflowID}"
              else
-               echo "$CurrentWorkflowID==$OldWorkflowID => Hence nothing need to be done here."
+               echo "${STACKS[@]} == ${OldWorkflowID}  => Hence nothing need to be done here."
              fi
              
 workflows:

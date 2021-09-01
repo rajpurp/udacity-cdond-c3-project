@@ -221,42 +221,65 @@ jobs:
             
   run-migrations:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - restore_cache:
+          keys: [backend-build]
       - run:
-          name: Install AWS CLI dependencies
-          working_directory: /tmp
+          name: awscli install
           command: |
+            sudo apt-get -y -qq update
+            sudo apt-get -y -qq install python3
+            sudo apt-get -qq install awscli
             sudo apt-get update && sudo apt-get install -yy less
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
+            
+      - run:
+          name: envts
+          working_directory: ./backend
+          command: |
+            touch .env
+            echo ENVIROMENT=production > .env
+            echo NODE_ENV=production >> ".env"
+            echo TYPEORM_CONNECTION=postgres >> .env
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+            echo "####################### 1 echo ######################################"
+            ls -latr
+            cat .env
+            
       - run:
           name: run db migration
+          working_directory: ./backend
           command: |
-            cd backend
-            pwd &&
-            ls -la
-            echo ENVIROMENT=$ENVIROMENT > ".env"
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ".env"
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ".env"
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> ".env"
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> ".env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-            echo "####################### 1 echo ######################################"
-            npm install
+            pwd
+            echo "HOST: " $TYPEORM_HOST
+            echo "PWD: " $(pwd)
+            echo $TYPEORM_DATABASE
+            echo "####################### 1.1 echo ######################################"
+            npm audit fix --audit-level=critical
             npm audit fix --force
+            npm install
+            npm audit fix --audit-level=critical
+            npm audit fix --force
+            npm run build
+            
             echo "####################### 2 echo ######################################"
             touch run_migrations.txt
             echo "####################### 3 echo ######################################"
+            npm run migrations:revert
             npm run migrations >> run_migrations.txt
+            npm audit fix --audit-level=critical
+            npm audit fix --force
             echo "####################### 4 echo ######################################"
             cat run_migrations.txt
             echo "####################### end echo ####################################"
@@ -267,16 +290,16 @@ jobs:
             cd backend
             pwd &&
             ls -la
-            if grep -q "has been executed successfully" run_migrations.txt
+            if [ $(grep -i "has been executed successfully" run_migrations.txt | wc -l) -ge 1 ]
             then
               echo "DB migration successful, updating memstash!!"
-              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "Migration Successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             else
               echo "DB migration got failed."
-              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "Migration Failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             fi
             echo "####################### 1 echo ######################################"
-            SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             echo "####################### 2 echo ######################################"
             echo "${SUCCESS}" 
             echo "####################### 3 echo ######################################"

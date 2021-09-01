@@ -436,8 +436,8 @@ jobs:
             else
               echo "This is new stack and nothing to delete."
             fi
-      - destroy-environment  
-      - revert-migrations  
+#      - destroy-environment  
+#      - revert-migrations  
    
 
 # cleanup:

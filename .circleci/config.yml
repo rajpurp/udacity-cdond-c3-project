@@ -265,24 +265,12 @@ jobs:
             echo "HOST: " $TYPEORM_HOST
             echo "PWD: " $(pwd)
             echo $TYPEORM_DATABASE
-            echo "####################### 1.1 echo ######################################"
-            npm audit fix --audit-level=critical
-            npm audit fix --force
             npm install
-            npm audit fix --audit-level=critical
-            npm audit fix --force
             npm run build
-            
-            echo "####################### 2 echo ######################################"
-            touch run_migrations.txt
-            echo "####################### 3 echo ######################################"
+            touch migrationresult.txt
             npm run migrations:revert
             npm run migrations >> run_migrations.txt
-            npm audit fix --audit-level=critical
-            npm audit fix --force
-            echo "####################### 4 echo ######################################"
-            cat run_migrations.txt
-            echo "####################### end echo ####################################"
+            cat migrationresult.txt
 
       - run:
           name: Send migration results to memstash

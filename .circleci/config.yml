@@ -93,6 +93,7 @@ jobs:
             npm install
             npm i
             npm run build
+            npm audit fix
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -161,7 +162,7 @@ jobs:
             aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --filters "Name=tag:project,Values=prod-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text >> inventory.txt
             echo "####################### 2 echo ######################################"
             cat inventory.txt
@@ -184,12 +185,6 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - revert-migrations
-
-
-
-
-
-
 
 
   configure-infrastructure:

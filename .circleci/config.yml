@@ -398,7 +398,7 @@ jobs:
       - revert-migrations  
       - destroy-environment 
 
-  cloudfront-update-cleanup:
+  cloudfront-update-and-cleanup:
     docker:
       - image: amazon/aws-cli
     steps:

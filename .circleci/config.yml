@@ -91,6 +91,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm i
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -107,9 +108,10 @@ jobs:
           name: test-backend
           command: |
             cd backend
-            npm install
-            npm run test
+            sudo  npm  install oauth-sign
+            sudo  npm run  test
 
+             
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -123,7 +125,7 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical
-
+            
 #############################################
 
   deploy-infrastructure:
@@ -159,11 +161,11 @@ jobs:
             aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --filters "Name=tag:project,Values=prod-backend" \
+              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text >> inventory.txt
             echo "####################### 2 echo ######################################"
             cat inventory.txt
-            
+
       - run:
           name: Add back-end ip to memstash
           working_directory: ./.circleci/ansible
@@ -171,7 +173,7 @@ jobs:
             BACKEND=$(aws ec2 describe-instances \
               --region us-east-2 \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --filters "Name=tag:project,Values=prod-backend" \
+              --filters "Name=tag:project,Values=prod-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text )
             echo="${BACKEND}"
             echo="http://$BACKEND:3030"
@@ -260,10 +262,10 @@ jobs:
             if grep -q "has been executed successfully" run_migrations.txt
             then
               echo "DB migration successful, updating memstash!!"
-              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
               echo "DB migration got failed."
-              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
             echo "####################### 1 echo ######################################"
             SUCCESS=$(curl -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})

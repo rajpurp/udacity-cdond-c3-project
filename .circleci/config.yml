@@ -219,60 +219,60 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
       - revert-migrations  
             
-            
+           ################
   run-migrations:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
-          name: create env
+          name: awscli install
           command: |
+            sudo apt-get -y -qq update
+            sudo apt-get -y -qq install python3
+            sudo apt-get -qq install awscli
+      - run:
+          name: envts
+          working_directory: ./backend
+          command: |
+            touch .env
             echo ENVIROMENT=production > .env
             echo NODE_ENV=production >> ".env"
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ".env"
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ".env"
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> ".env"
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> ".env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-            cd backend && npm install && npm run build
-            npm run migrations > run_migrations.txt
+            echo TYPEORM_CONNECTION=postgres >> .env
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+            ls -latr
+            cat .env
+      - run:
+          name: Run migrations
+          working_directory: ./backend
+          command: |
+            pwd
+            echo "HOST: " $TYPEORM_HOST
+            echo "PWD: " $(pwd)
+            echo $TYPEORM_DATABASE
+            npm install
+            npm run build
+            touch run_migrations.txt
+            npm run migrations:revert
+            npm run migrations >> run_migrations.txt
             cat run_migrations.txt
-
-#             npm audit fix --force
-            
-#     - run:
-#         name: envts
-#         working_directory: ./backend
-#         command: |
-#           touch .env
-#           echo ENVIROMENT=production > .env
-#           echo NODE_ENV=local >> ".env"
-#           echo VERSION=1 >> ".env"
-#           echo TYPEORM_CONNECTION=postgres >> .env
-#           echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
-#           echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
-#           echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
-#           echo TYPEORM_HOST=glee.ctiaio5gyag4.us-east-2.rds.amazonaws.com >> .env
-#           echo TYPEORM_PORT=5532 >> .env
-#           echo TYPEORM_USERNAME=postgres >> .env
-#           echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
-#           echo TYPEORM_DATABASE=glee >> .env
-#           echo "####################### 1 echo ######################################"
-#           ls -latr
-#           cat .env
-#         
-            
       - run:
           name: Send migration results to memstash
           command: |
-            cd backend
+            #!/bin/bash
             pwd &&
             ls -la
+            cd backend
+            cat run_migrations.txt
             if [ $(grep -i "has been executed successfully" run_migrations.txt | wc -l) -ge 1 ]
             then
               echo "DB migration successful, updating memstash!!"
@@ -286,9 +286,9 @@ jobs:
             echo "####################### 2 echo ######################################"
             echo "${SUCCESS}" 
             echo "####################### 3 echo ######################################"
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
+#      - save_cache:
+#          paths: [backend/node_modules]
+#          key: backend-build
       - revert-migrations  
       - destroy-environment
 

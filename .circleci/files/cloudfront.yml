@@ -15,6 +15,14 @@ Resources:
       CloudFrontOriginAccessIdentityConfig:
         Comment: Origin Access Identity for Serverless Static Website
 
+#            S3OriginConfig:
+#              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+       
+#           CustomOriginConfig:
+#             HTTPPort: 80
+#             HTTPSPort: 443
+#             OriginProtocolPolicy: http-only
+              
   WebpageCDN:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -24,10 +32,6 @@ Resources:
             Id: webpage
             S3OriginConfig:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
-            CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: http-only
         Enabled: True
         DefaultRootObject: index.html
         DefaultCacheBehavior:

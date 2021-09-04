@@ -29,7 +29,7 @@ commands:
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
-              npm install -g npm-check-updates
+              npm install
               npm run migrations:revert
             fi
 jobs:
@@ -45,7 +45,7 @@ jobs:
           name: build-frontend
           command: |
             sudo cd frontend
-            sudo npm install -g npm-check-updates 
+            sudo npm install 
             sudo npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -62,7 +62,7 @@ jobs:
           name: test-frontend
           command: |
             cd frontend
-            npm install -g npm-check-updates
+            npm install
             npm run test
             
   scan-frontend:      
@@ -76,7 +76,7 @@ jobs:
           name: scan-frontend
           command: |
             cd frontend
-            npm install -g npm-check-updates
+            npm install
             npm audit fix --audit-level=critical --force
 
   build-backend:
@@ -90,7 +90,7 @@ jobs:
           name: build-backend
           command: |
             sudo cd backend
-            sudo npm install  -g npm-check-updates
+            sudo npm install 
             sudo npm i
             sudo npm run build
             sudo npm audit fix --audit-level=critical --force
@@ -124,7 +124,7 @@ jobs:
           name: scan-backend
           command: |
             cd backend
-            npm install -g npm-check-updates
+            npm install
             npm audit fix --audit-level=critical --force
             
 #############################################
@@ -258,7 +258,7 @@ jobs:
             echo "HOST: " $TYPEORM_HOST
             echo "PWD: " $(pwd)
             echo $TYPEORM_DATABASE
-            npm install -g npm-check-updates
+            npm install
             npm run build
             npm audit fix --audit-level=critical --force
             touch run_migrations.txt
@@ -311,7 +311,7 @@ jobs:
             echo "${API_URL}" >> "frontend/.env"
             cat frontend/.env
             cd frontend
-            npm install -g npm-check-updates
+            npm install
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
       - run:

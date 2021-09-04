@@ -412,8 +412,8 @@ jobs:
             else
               return 0
             fi
-      - revert-migrations  
-      - destroy-environment 
+ #     - revert-migrations  
+ #     - destroy-environment 
 
   cloudfront-update-and-cleanup:
     docker:

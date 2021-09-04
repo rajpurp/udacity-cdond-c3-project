@@ -44,9 +44,9 @@ jobs:
       - run:
           name: build-frontend
           command: |
-            cd frontend
-            npm install -g npm-check-updates 
-            npm run build
+            sudo cd frontend
+            sudo npm install -g npm-check-updates 
+            sudo npm run build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -89,11 +89,11 @@ jobs:
       - run:
           name: build-backend
           command: |
-            cd backend
-            npm install  -g npm-check-updates
-            npm i
-            npm run build
-            npm audit fix --audit-level=critical --force
+            sudo cd backend
+            sudo npm install  -g npm-check-updates
+            sudo npm i
+            sudo npm run build
+            sudo npm audit fix --audit-level=critical --force
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build

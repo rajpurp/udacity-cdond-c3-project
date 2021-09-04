@@ -45,7 +45,7 @@ jobs:
           name: build-frontend
           command: |
             cd frontend
-            npm install 
+            npm install
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -90,10 +90,10 @@ jobs:
           name: build-backend
           command: |
             cd backend
-            npm install 
+            npm install
             npm i
             npm run build
-            npm audit fix --audit-level=critical --force
+            npm audit fix --force
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -126,6 +126,7 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical --force
+#            npm audit fix --force
             
 #############################################
 
@@ -179,7 +180,7 @@ jobs:
               --output text )
             echo "####################### 1 echo ######################################"
             echo "${BACKEND}"
-            echo "https://$BACKEND:3030"
+            echo "http://$BACKEND:3030"
             curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$BACKEND" https://api.memstash.io/values/BACKENDURL
 
       - persist_to_workspace:
@@ -404,13 +405,13 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-2.amazonaws.com/index.html"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.us-east-2.amazonaws.com"
             echo "${URL}"
             if curl -s ${URL} | grep "Welcome"
             then
               return 0            
             else
-              return 0
+              return 1
             fi
  #     - revert-migrations  
  #     - destroy-environment 

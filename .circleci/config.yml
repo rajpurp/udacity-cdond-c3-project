@@ -317,7 +317,7 @@ jobs:
             aws s3 sync dist s3://$s3Bucket/
             s3FullUrl=("http://$s3Bucket.s3-website.us-east-2.amazonaws.com")
             curl -H "Content-Type: text/plain" -H "token: 8ceeeb81-69b3-4a0d-b8b8-a9e5eaa307c3" --request PUT --data "$s3FullUrl" https://api.memstash.io/values/s3bucket_${CIRCLE_WORKFLOW_ID}
-            
+             
       - run:
           name: Deploy frontend objects
           working_directory: ./frontend

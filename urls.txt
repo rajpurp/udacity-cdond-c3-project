@@ -2,28 +2,27 @@ Public Url to GitHub repository (not private) [URL01] :
 	https://github.com/rajpurp/udacity-cdond-c3-project.git
 
 Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02] :
-	https://console.aws.amazon.com/s3/buckets/udapeople-186e609?region=us-east-2&tab=objects
-	http://udapeople-186e609.s3-website.us-east-2.amazonaws.com
+	http://udapeople-c8230ae.s3-website.us-east-2.amazonaws.com
 
 Public URL for your CloudFront distribution (aka, your blue production front-end) [URL03] :
-	https://us-east-2.console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/stackinfo?stackId=arn%3Aaws%3Acloudformation%3Aus-east-2%3A303828929336%3Astack%2Fudapeople-cloudfront-prod%2F344e0970-0b88-11ec-8eb4-0613ece1eb52&filteringStatus=active&filteringText=&viewNested=true&hideStacks=false
-	https://us-east-2.console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/stackinfo?stackId=arn%3Aaws%3Acloudformation%3Aus-east-2%3A303828929336%3Astack%2Fprod-frontend-186e609%2F94efa800-0c6f-11ec-84e3-02b0e2763620&filteringStatus=active&filteringText=&viewNested=true&hideStacks=false
-	
+	https://d3xbqjrz3vfwn.cloudfront.net
+	http://udapeople-c8230ae.s3.us-east-2.amazonaws.com/index.html#/employees
+
 Public URLs to deployed application back-end in EC2 [URL04]
-	ec2-52-14-2-132.us-east-2.compute.amazonaws.com
-	ec2-52-14-2-132.us-east-2.compute.amazonaws.com:3030/api/status
+	ec2-3-140-199-132.us-east-2.compute.amazonaws.com
+	ec2-3-140-199-132.us-east-2.compute.amazonaws.com:3030/api/status
+	
 	
 Public URL to your Prometheus Server [URL05]
-	ec2-18-189-7-171.us-east-2.compute.amazonaws.com
-	ec2-18-189-7-171.us-east-2.compute.amazonaws.com:9090/targets
+	ec2-18-217-243-219.us-east-2.compute.amazonaws.com
+	ec2-18-217-243-219.us-east-2.compute.amazonaws.com:9090/targets
+	
 
 Website endpoint :
-	http://udapeople-186e609.s3-website.us-east-2.amazonaws.com/#/employees
+	http://udapeople-c8230ae.s3-website.us-east-2.amazonaws.com/#/employees
 
 Circle CI 
 	https://app.circleci.com/pipelines/github/rajpurp
 ++
 I tried adding employee and it was sucessfull
 I have configured alerts in gmail 
-
-
